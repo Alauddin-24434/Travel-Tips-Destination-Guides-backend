@@ -2,9 +2,7 @@
 import bcryptjs from 'bcryptjs';
 import { Schema, model } from 'mongoose';
 import config from '../../config';
-import { USER_ROLE, USER_STATUS } from './user.constant';
 import { IUserModel, TUser } from './user.interface';
-
 
 const userSchema = new Schema<TUser, IUserModel>(
   {
@@ -14,13 +12,13 @@ const userSchema = new Schema<TUser, IUserModel>(
     },
     role: {
       type: String,
-      enum: Object.keys(USER_ROLE),
-      required: true,
+      enum: ["ADMIN", "USER"], // Set enum values for role
+      required: true, // Ensure role is required
     },
     email: {
       type: String,
       required: true,
-      //validate email
+      // Validate email
       match: [
         /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/,
         'Please fill a valid email address',
@@ -33,22 +31,31 @@ const userSchema = new Schema<TUser, IUserModel>(
     },
     status: {
       type: String,
-      enum: Object.keys(USER_STATUS),
-      default: USER_STATUS.ACTIVE,
+      enum: ["ACTIVE", "BLOCKED"], // Set enum values for status
+      default: "ACTIVE", // Default status
     },
-   
+    following: {
+      type: [String],
+      required: true,
+      default: [], // Set default to empty array
+    },
+    follower: {
+      type: [String],
+      required: true,
+      default: [], // Set default to empty array
+    },
     mobileNumber: {
       type: String,
       required: true,
     },
     profilePhoto: {
       type: String,
-      default: null
+      default: null,
     },
     isDeleted: {
-        type: Boolean,
-        default: false,
-      },
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -57,10 +64,8 @@ const userSchema = new Schema<TUser, IUserModel>(
 );
 
 userSchema.pre('save', async function (next) {
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
   const user = this; // doc
-  // hashing password and save into DB
-
+  // Hashing password and save into DB
   user.password = await bcryptjs.hash(
     user.password,
     Number(config.bcrypt_salt_rounds)
@@ -69,22 +74,21 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// set '' after saving password
+// Set '' after saving password
 userSchema.post('save', function (doc, next) {
   doc.password = '';
   next();
 });
 
 userSchema.statics.isUserExistsByEmail = async function (email: string) {
-  return await User.findOne({ email }).select('+password');
+  return await this.findOne({ email }).select('+password');
 };
 
 userSchema.statics.isPasswordMatched = async function (
-  plainTextPassword,
-  hashedPassword
+  plainTextPassword: string,
+  hashedPassword: string
 ) {
   return await bcryptjs.compare(plainTextPassword, hashedPassword);
 };
-
 
 export const User = model<TUser, IUserModel>('User', userSchema);

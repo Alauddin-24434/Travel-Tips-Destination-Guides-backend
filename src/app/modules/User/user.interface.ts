@@ -1,15 +1,16 @@
 /* eslint-disable no-unused-vars */
 import { Model } from 'mongoose';
-import { USER_ROLE, USER_STATUS } from './user.constant';
 
 export type TUser = {
   _id?: string;
   name: string;
-  role: keyof typeof USER_ROLE;
+  role: "ADMIN" | "USER"; // Set role as required with literal types
   email: string;
   password: string;
-  status: keyof typeof USER_STATUS;
+  status: "ACTIVE" | "BLOCKED"; // Set status as required with literal types
   mobileNumber?: string;
+  following: string[];
+  follower: string[];
   profilePhoto?: string;
   isDeleted?: boolean;
   createdAt?: Date;
@@ -17,25 +18,19 @@ export type TUser = {
 };
 
 export interface IUserModel extends Model<TUser> {
-  //instance methods for checking if the user exist
+  // Instance methods for checking if the user exists
   isUserExistsByCustomId(id: string): Promise<TUser>;
-//instance methods for checking if the user exist
-isUserExistsByEmail(email: string): Promise<TUser>;
-//instance methods for checking if passwords are matched
-isPasswordMatched(
-  plainTextPassword: string,
-  hashedPassword: string,
-): Promise<boolean>;
+  // Instance methods for checking if the user exists by email
+  isUserExistsByEmail(email: string): Promise<TUser>;
+  // Instance methods for checking if passwords are matched
+  isPasswordMatched(
+    plainTextPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean>;
 }
 
-export type TUserRole = keyof typeof USER_ROLE;
-
-
-
-export type TUpdateUser={
-
-name:string;
-phone:string;
-address:string;
-
-}
+export type TUpdateUser = {
+  name: string;
+  phone: string;
+  address: string;
+};

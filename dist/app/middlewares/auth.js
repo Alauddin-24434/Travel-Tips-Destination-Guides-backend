@@ -27,8 +27,9 @@ const authValidation = (...requiredRoles) => {
         if (!token) {
             throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, "You are not authorized!");
         }
+        // Verify and decode the token
         const decoded = (0, verifyJWT_1.verifyToken)(token, config_1.default.jwt_access_secret);
-        const { role, email, } = decoded;
+        const { role, email } = decoded;
         // Check if the user exists
         const user = yield user_model_js_1.User.isUserExistsByEmail(email);
         if (!user) {
@@ -47,7 +48,7 @@ const authValidation = (...requiredRoles) => {
             throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, "You are not authorized!");
         }
         // Attach the user information to the request object
-        req.user = decoded;
+        req.user = Object.assign(Object.assign({}, decoded), { role: role });
         // Proceed to the next middleware or route handler
         next();
     }));

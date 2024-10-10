@@ -19,6 +19,7 @@ const catchAsync_1 = require("../../utils/catchAsync");
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const auth_service_1 = require("./auth.service");
 const createUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.body);
     const result = yield auth_service_1.AuthServices.createUser(req.body);
     const { refreshToken, accessToken } = result;
     res.cookie('refreshToken', refreshToken, {

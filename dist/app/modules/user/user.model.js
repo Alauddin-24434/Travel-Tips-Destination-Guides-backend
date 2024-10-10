@@ -17,7 +17,6 @@ exports.User = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const mongoose_1 = require("mongoose");
 const config_1 = __importDefault(require("../../config"));
-const user_constant_1 = require("./user.constant");
 const userSchema = new mongoose_1.Schema({
     name: {
         type: String,
@@ -25,13 +24,13 @@ const userSchema = new mongoose_1.Schema({
     },
     role: {
         type: String,
-        enum: Object.keys(user_constant_1.USER_ROLE),
-        required: true,
+        enum: ["ADMIN", "USER"], // Set enum values for role
+        required: true, // Ensure role is required
     },
     email: {
         type: String,
         required: true,
-        //validate email
+        // Validate email
         match: [
             /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/,
             'Please fill a valid email address',
@@ -44,8 +43,18 @@ const userSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: Object.keys(user_constant_1.USER_STATUS),
-        default: user_constant_1.USER_STATUS.ACTIVE,
+        enum: ["ACTIVE", "BLOCKED"], // Set enum values for status
+        default: "ACTIVE", // Default status
+    },
+    following: {
+        type: [String],
+        required: true,
+        default: [], // Set default to empty array
+    },
+    follower: {
+        type: [String],
+        required: true,
+        default: [], // Set default to empty array
     },
     mobileNumber: {
         type: String,
@@ -53,7 +62,7 @@ const userSchema = new mongoose_1.Schema({
     },
     profilePhoto: {
         type: String,
-        default: null
+        default: null,
     },
     isDeleted: {
         type: Boolean,
@@ -65,21 +74,20 @@ const userSchema = new mongoose_1.Schema({
 });
 userSchema.pre('save', function (next) {
     return __awaiter(this, void 0, void 0, function* () {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const user = this; // doc
-        // hashing password and save into DB
+        // Hashing password and save into DB
         user.password = yield bcryptjs_1.default.hash(user.password, Number(config_1.default.bcrypt_salt_rounds));
         next();
     });
 });
-// set '' after saving password
+// Set '' after saving password
 userSchema.post('save', function (doc, next) {
     doc.password = '';
     next();
 });
 userSchema.statics.isUserExistsByEmail = function (email) {
     return __awaiter(this, void 0, void 0, function* () {
-        return yield exports.User.findOne({ email }).select('+password');
+        return yield this.findOne({ email }).select('+password');
     });
 };
 userSchema.statics.isPasswordMatched = function (plainTextPassword, hashedPassword) {

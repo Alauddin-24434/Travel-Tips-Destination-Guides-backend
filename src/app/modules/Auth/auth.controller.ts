@@ -5,6 +5,7 @@ import sendResponse from "../../utils/sendResponse";
 import { AuthServices } from "./auth.service";
 
 const createUser = catchAsync(async (req, res) => {
+  console.log(req.body)
     const result = await AuthServices.createUser(req.body);
     const { refreshToken, accessToken } = result;
   
