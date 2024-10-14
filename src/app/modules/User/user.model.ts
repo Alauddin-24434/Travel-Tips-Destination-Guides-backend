@@ -1,94 +1,130 @@
-/* eslint-disable no-useless-escape */
-import bcryptjs from 'bcryptjs';
-import { Schema, model } from 'mongoose';
-import config from '../../config';
-import { IUserModel, TUser } from './user.interface';
+/* eslint-disable @typescript-eslint/no-this-alias */
 
-const userSchema = new Schema<TUser, IUserModel>(
+import mongoose, { Schema, model,  } from "mongoose";
+import { IUserModel, TUser } from "./user.interface";
+import { GENDER, USER_ROLE, USER_STATUS } from "./user.constant";
+import bcryptjs from "bcryptjs";
+import config from "../../config";
+
+const userSchema = new Schema<TUser>(
   {
     name: {
       type: String,
       required: true,
-    },
-    role: {
-      type: String,
-      enum: ["ADMIN", "USER"], // Set enum values for role
-      required: true, // Ensure role is required
+      trim: true,
     },
     email: {
       type: String,
       required: true,
-      // Validate email
-      match: [
-        /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/,
-        'Please fill a valid email address',
-      ],
+      unique: true,
     },
     password: {
       type: String,
       required: true,
-      select: 0,
+    },
+    gender: {
+      type: String,
+      enum: Object.keys(GENDER),
+      required: true,
+    },
+    role: {
+      type: String,
+      enum: Object.keys(USER_ROLE),
+      default: USER_ROLE.USER,
+    },
+    profileImage: {
+      type: String,
+  required:true,
+    },
+    bio: {
+      type: String,
+      default: null,
+    },
+    birthDate: {
+      type: String,
+      required: true,
     },
     status: {
       type: String,
-      enum: ["ACTIVE", "BLOCKED"], // Set enum values for status
-      default: "ACTIVE", // Default status
+      enum: Object.keys(USER_STATUS),
+      default: USER_STATUS.ACTIVE,
     },
-    following: {
-      type: [String],
-      required: true,
-      default: [], // Set default to empty array
-    },
-    follower: {
-      type: [String],
-      required: true,
-      default: [], // Set default to empty array
+    passwordChangedAt: {
+      type: Date,
     },
     mobileNumber: {
       type: String,
       required: true,
     },
-    profilePhoto: {
+    address: {
       type: String,
       default: null,
     },
-    isDeleted: {
+    isVerified: {
       type: Boolean,
       default: false,
     },
+    followers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    following: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    bookmarkPosts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
+      },
+    ],
   },
-  {
-    timestamps: true,
-    virtuals: true,
-  }
+  { timestamps: true },
 );
 
-userSchema.pre('save', async function (next) {
-  const user = this; // doc
-  // Hashing password and save into DB
+// hashing password before it save to our database
+userSchema.pre("save", async function (next) {
+  const user = this;
+
   user.password = await bcryptjs.hash(
     user.password,
-    Number(config.bcrypt_salt_rounds)
+    Number(config.bcrypt_salt_rounds),
   );
 
   next();
 });
 
-// Set '' after saving password
-userSchema.post('save', function (doc, next) {
-  doc.password = '';
+// after saving the user in the response we are sending empty string in the password field
+userSchema.post("save", function (doc, next) {
+  doc.password = "";
   next();
 });
 
+// checking if the user is already exist in the data base
 userSchema.statics.isUserExistsByEmail = async function (email: string) {
-  return await this.findOne({ email }).select('+password');
+  return await User.findOne({ email }).select("+password");
 };
 
+// checking if the given password is matched with the correct password
 userSchema.statics.isPasswordMatched = async function (
-  plainTextPassword: string,
-  hashedPassword: string
+  plainTextPassword,
+  hashedPassword,
 ) {
   return await bcryptjs.compare(plainTextPassword, hashedPassword);
 };
 
-export const User = model<TUser, IUserModel>('User', userSchema);
+// checking if the jwt token issued time if before the password changed time
+userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
+  passwordChangedTimestamp: number,
+  jwtIssuedTimestamp: number,
+) {
+  const passwordChangedTime =
+    new Date(passwordChangedTimestamp).getTime() / 1000;
+  return passwordChangedTime > jwtIssuedTimestamp;
+};
+
+export const User = model<TUser, IUserModel>("User", userSchema);

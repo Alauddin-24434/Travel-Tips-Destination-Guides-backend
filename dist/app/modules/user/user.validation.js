@@ -1,39 +1,47 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserValidation = void 0;
+exports.userUpdateSchema = exports.userRegisterSchema = void 0;
 const zod_1 = require("zod");
 const user_constant_1 = require("./user.constant");
-const createUserValidationSchema = zod_1.z.object({
+exports.userRegisterSchema = zod_1.z.object({
     body: zod_1.z.object({
-        name: zod_1.z.string({
-            required_error: 'Name is required',
-        }),
-        role: zod_1.z.nativeEnum(user_constant_1.USER_ROLE),
-        email: zod_1.z
-            .string({
-            required_error: 'Email is required',
-        })
-            .email({
-            message: 'Invalid email',
-        }),
-        password: zod_1.z.string({
-            required_error: 'Password is required',
-        }),
-        status: zod_1.z.nativeEnum(user_constant_1.USER_STATUS).default(user_constant_1.USER_STATUS.ACTIVE),
-        mobileNumber: zod_1.z.string().optional(),
+        name: zod_1.z.string().min(1, { message: "Name is required" }).trim(),
+        email: zod_1.z.string().email({ message: "Invalid email address" }),
+        password: zod_1.z
+            .string()
+            .min(6, { message: "Password must be at least 6 characters long" }),
+        gender: zod_1.z.enum(Object.keys(user_constant_1.GENDER)),
+        profileImage: zod_1.z
+            .string()
+            .url()
+            .optional(),
+        bio: zod_1.z.string().optional(),
+        birthDate: zod_1.z.string().min(1, { message: "Birth date is required" }),
+        mobileNumber: zod_1.z.string().min(10, { message: "Mobile number is required" }),
+        address: zod_1.z.string().min(1, { message: "Address is required" }),
+        isVerified: zod_1.z.boolean().optional().default(false),
+        followers: zod_1.z.array(zod_1.z.string().optional()).optional(),
+        following: zod_1.z.array(zod_1.z.string().optional()).optional(),
     }),
 });
-const updateUserValidationSchema = zod_1.z.object({
+exports.userUpdateSchema = zod_1.z.object({
     body: zod_1.z.object({
-        name: zod_1.z.string().optional(),
-        role: zod_1.z.nativeEnum(user_constant_1.USER_ROLE).optional(),
-        email: zod_1.z.string().email().optional(),
-        password: zod_1.z.string().optional(),
-        status: zod_1.z.nativeEnum(user_constant_1.USER_STATUS).optional(),
-        mobileNumber: zod_1.z.string().optional(),
+        name: zod_1.z.string().min(1, { message: "Name is required" }).trim().optional(),
+        gender: zod_1.z.enum(Object.keys(user_constant_1.GENDER)).optional(),
+        profileImage: zod_1.z
+            .string()
+            .url({ message: "Invalid profile image URL" })
+            .optional()
+            .default("https://i.ibb.co/vkVW6s0/download.png"),
+        bio: zod_1.z.string().optional(),
+        birthDate: zod_1.z
+            .string()
+            .min(1, { message: "Birth date is required" })
+            .optional(),
+        mobileNumber: zod_1.z
+            .string()
+            .min(10, { message: "Mobile number must be at least 10 digits" })
+            .optional(),
+        address: zod_1.z.string().optional(),
     }),
 });
-exports.UserValidation = {
-    createUserValidationSchema,
-    updateUserValidationSchema,
-};

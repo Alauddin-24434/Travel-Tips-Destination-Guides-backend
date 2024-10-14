@@ -16,30 +16,59 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const app_1 = __importDefault(require("./app"));
 const config_1 = __importDefault(require("./app/config"));
 let server;
+process.on("uncaughtException", (error) => {
+    console.error("Uncaught Exception:", error);
+    process.exit(1);
+});
+process.on("unhandledRejection", (error) => {
+    console.error("Unhandled Rejection:", error);
+    if (server) {
+        server.close(() => {
+            console.error("Server closed due to unhandled rejection");
+            process.exit(1);
+        });
+    }
+    else {
+        process.exit(1);
+    }
+});
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield mongoose_1.default.connect(config_1.default.database_url);
+            yield mongoose_1.default.connect(config_1.default.db_url);
+            console.log("Database connected successfully");
             server = app_1.default.listen(config_1.default.port, () => {
-                console.log(`app is listening on port ${config_1.default.port}`);
+                console.log(`travex is running on port ${config_1.default.port}`);
             });
         }
         catch (err) {
-            console.log(err);
+            console.error("Failed to connect to database:", err);
+            process.exit(1);
         }
     });
 }
 main();
-process.on("unhandledRejection", () => {
-    console.log(`unahandledRejection is detected , shutting down ...`);
+process.on("SIGTERM", () => {
+    console.log("SIGTERM received");
     if (server) {
         server.close(() => {
-            process.exit(1);
+            console.log("Server closed due to SIGTERM");
+            process.exit(0);
         });
     }
-    process.exit(1);
+    else {
+        process.exit(0);
+    }
 });
-process.on("uncaughtException", () => {
-    console.log(`uncaughtException is detected , shutting down ...`);
-    process.exit(1);
+process.on("SIGINT", () => {
+    console.log("SIGINT received");
+    if (server) {
+        server.close(() => {
+            console.log("Server closed due to SIGINT");
+            process.exit(0);
+        });
+    }
+    else {
+        process.exit(0);
+    }
 });

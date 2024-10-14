@@ -1,28 +1,35 @@
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
+import notFound from "./app/middleware/notFound";
+import globalErrorHandler from "./app/middleware/globalErrorHandler";
+import cookieParser from "cookie-parser";
 import router from "./app/routes";
-import globalErrorHandler from "./app/middlewares/globalErrorHandler";
-import notFound from "./app/middlewares/notFound";
-import cookieParser from 'cookie-parser';
-import bodyParser from "body-parser";
 const app: Application = express();
 
-
-//parsers
+// parsers
 app.use(express.json());
 app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(cors({ origin: ['http://localhost:3000'], credentials: true }));
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://travel-trips-client.vercel.app"],
+    credentials: true,
+  }),
+);
 
-// application routes
+// module routes
 app.use("/api", router);
 
+// test routes
 app.get("/", (req: Request, res: Response) => {
-  res.send("server is running on 5000");
+  const a = "Hello world";
+
+  res.send(a);
 });
+
+// global error handler middleware
 app.use(globalErrorHandler);
 
-//Not Found
+// not found route middleware
 app.use(notFound);
 
 export default app;
