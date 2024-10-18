@@ -30,6 +30,7 @@ const getAllPosts = catchAsync(async (req, res) => {
   });
 });
 
+
 const getPostById = catchAsync(async (req, res) => {
   const postId = req.params.id;
   const post = await PostServices.getPostByFromDB(postId);

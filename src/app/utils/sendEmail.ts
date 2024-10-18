@@ -13,7 +13,7 @@ export const sendEmail = async (to: string, emailHtml: string) => {
   });
 
   await transporter.sendMail({
-    from: "", // sender address
+    from:"muhammadalauddin24434@gmail.com",
     to,
     subject: "Reset Your Password Securely🔐", // Subject line
     text: "We received a request to reset your password. You can reset it by clicking the link below:", // plain text body

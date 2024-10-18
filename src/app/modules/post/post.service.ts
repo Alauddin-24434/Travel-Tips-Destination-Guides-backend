@@ -129,6 +129,8 @@ const getCurrentUserPost = async (userId: string) => {
   return result;
 };
 
+
+
 export const PostServices = {
   createPostIntoDb,
   getAllPostsFromDb,
@@ -136,5 +138,6 @@ export const PostServices = {
   updatePostIntoDB,
   deletePostIntoDb,
   votePostIntoDB,
+ 
   getCurrentUserPost,
 };

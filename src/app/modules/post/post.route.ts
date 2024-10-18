@@ -17,6 +17,7 @@ router.post(
   PostControllers.createPost,
 );
 router.get("/get-all", PostControllers.getAllPosts);
+
 router.get("/get-single/:id", PostControllers.getPostById);
 router.put(
   "/:id",
