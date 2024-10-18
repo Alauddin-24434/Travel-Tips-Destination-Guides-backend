@@ -79,7 +79,7 @@ const confirmationService = async (
 
       await Payment.create(paymentData);
       message = "Payment successful";
-      const filePath = join(__dirname, "../../../../views/confirmation.html");
+      const filePath = join(__dirname, "../../../../subscriptionTemplate/confirmation.html");
       let template = readFileSync(filePath, "utf-8");
       template = template.replace("{{message}}", message);
       return template;
@@ -88,8 +88,8 @@ const confirmationService = async (
     }
   } catch (error: any) {
     message = "Payment failed";
-
-    const filePath = join(__dirname, "../../../../views/failConfirmation.html");
+    // ../../../../views/failConfirmation.html
+    const filePath = join(__dirname, "../../../../subscriptionTemplate/failConfirmation.html");
     let template;
     try {
       template = readFileSync(filePath, "utf-8");
